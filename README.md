@@ -7,6 +7,8 @@ co-virtualize enables the extension and decoupling of a react component's liveti
 ## **Why?**
 Sometimes you want to show a fade-out animation after a component has been removed from a list.
 
+![](./images/list.gif)
+*[List Example](https://co-virtualize.github.io/list)*
 
 Virtualization of components allows to let the virtualized component live after it's originator has been killed. A new owner can also regain control of the virtual component to enable all sorts of fancy animations.
 
