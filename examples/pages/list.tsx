@@ -2,6 +2,9 @@ import React, { PropsWithChildren, useEffect, useMemo, useRef, useState } from "
 import Head from "next/head"
 import { useVirtual, VirtualBase, VirtualProps } from "co-virtualize"
 import { useSpring, a } from "react-spring"
+import { Header } from "../components/header"
+import { Footer } from "../components/footer"
+import MD from "../content/list.md"
 
 export default function Index() {
     const [search, setSearch] = useState("")
@@ -16,7 +19,8 @@ export default function Index() {
                 <link rel="icon" type="image/svg+xml" href="/res/icon.svg" />
                 <link rel="mask-icon" href="/res/icon.svg" color="#fff" />
             </Head>
-            <div className="p-3" style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+            <Header selectedIndex={0} />
+            <div className="p-3" style={{ display: "flex", flexDirection: "column" }}>
                 <input value={search} onChange={e => setSearch(e.target.value)} type="text" className="form-control" placeholder="Search" />
                 <div style={{ flexWrap: "wrap", display: "flex", flexDirection: "row" }}>
                     <VirtualBase>
@@ -24,6 +28,10 @@ export default function Index() {
                     </VirtualBase>
                 </div>
             </div>
+            <div className="border-top border-2 bt-1 p-3">
+                <MD />
+            </div>
+            <Footer />
         </div>
     )
 }

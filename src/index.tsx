@@ -1,7 +1,7 @@
 import React, { ComponentType, createContext, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from "react"
 import { v4 as uuid } from "uuid"
 
-export type VirtualBaseContext = {
+type VirtualBaseContext = {
     set: (id: string, index: number, component: ComponentType<any>, props: any) => void
     unset: (id: string) => void
 }
@@ -59,6 +59,10 @@ function reduce(elements: VirtualElements, action: Action): VirtualElements {
     }
 }
 
+/**
+ * base for all virtual components
+ * all useVirtual hooks must be inside a VirtualBase
+ */
 export function VirtualBase({ children }: PropsWithChildren<{}>) {
     const [elements, changeElements] = useReducer(reduce, [])
     const ctx = useMemo<VirtualBaseContext>(() => ({
@@ -77,13 +81,32 @@ export function VirtualBase({ children }: PropsWithChildren<{}>) {
     </virtualBaseContext.Provider>
 }
 
-export type VirtualProps = { connected: boolean, destroy: () => void }
+/**
+ * additional properties available for virtual components
+ */
+export type VirtualProps = {
+    /**
+     * flag that represents whether the originator is still alive
+     */
+    connected: boolean,
+    /**
+     * function to end own existance
+     */
+    destroy: () => void
+}
 
-export function useVirtual<T>(component: ComponentType<Partial<T> & VirtualProps>, props: T, index: number, id?: string): void {
+/**
+ * will create a virtual component inside the containing virtual base
+ * @param component the component to be virtualized
+ * @param props properties to pass to the component
+ * @param index declares the order at which it should be rendered
+ * @param id optional unique identifier to regain control of a previously created virtual component
+ */
+export function useVirtual<T>(component: ComponentType<Partial<T> & VirtualProps>, props: T, index?: number, id?: string): void {
     const { set, unset } = useContext(virtualBaseContext)
     const identifier = useMemo(() => id ?? uuid(), [id])
     useEffect(() => {
-        set(identifier, index, component, props)
+        set(identifier, index ?? 0, component, props)
     }, [set, index, props, identifier, component])
     useEffect(() => () => unset(identifier), [identifier, unset])
 }

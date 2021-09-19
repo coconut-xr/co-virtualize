@@ -1,7 +1,8 @@
-import React, { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react"
+import React, {  } from "react"
 import Head from "next/head"
-import { useVirtual, VirtualBase, VirtualProps } from "co-virtualize"
-import { useSpring, a } from "react-spring"
+import { Header } from "../components/header"
+import MD from "../content/index.md"
+import { Footer } from "../components/footer"
 
 export default function Index() {
     return (
@@ -15,7 +16,11 @@ export default function Index() {
                 <link rel="icon" type="image/svg+xml" href="/res/icon.svg" />
                 <link rel="mask-icon" href="/res/icon.svg" color="#fff" />
             </Head>
-            co-virtualize
+            <Header selectedIndex={-1} />
+            <div className="container-lg p-3">
+                <MD />
+            </div>
+            <Footer />
         </div>
     )
 }

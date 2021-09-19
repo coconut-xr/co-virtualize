@@ -1,56 +1,27 @@
+import { useState } from "react"
+
 const pages: Array<{ title: string; url: string }> = [
     {
-        title: "Counter",
-        url: "/counter",
-    },
-    {
-        title: "Request",
-        url: "/request",
-    },
-    {
-        title: "Message",
-        url: "/message",
-    },
-    {
-        title: "Group Chat",
-        url: "/group-chat",
-    },
-    {
-        title: "Lockable",
-        url: "/lockable",
-    },
-    {
-        title: "Optimistic Lockable",
-        url: "/optimistic-lockable",
-    },
-    {
-        title: "Whiteboard",
-        url: "/whiteboard",
-    },
-    {
-        title: "Transformable",
-        url: "/transformable",
-    },
+        title: "List",
+        url: "/list",
+    }
 ]
 
 export function Header({ selectedIndex }: { selectedIndex: number }) {
+    const [open, setOpen] = useState(false)
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
             <div className="container-fluid">
                 <a className="navbar-brand" href="/">
-                    co-share examples
+                    co-virtualize examples
                 </a>
                 <button
                     className="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNavDropdown"
-                    aria-controls="navbarNavDropdown"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation">
+                    onClick={() => setOpen(!open)}
+                    type="button">
                     <span className="navbar-toggler-icon"></span>
                 </button>
-                <div className="align-self-flex-end collapse navbar-collapse" id="navbarNavDropdown">
+                <div className={`align-self-flex-end navbar-collapse ${open ? "" : "collapse"}`}>
                     <ul className="navbar-nav">
                         {pages.map(({ title, url }, index) => (
                             <li key={title} className="nav-item">

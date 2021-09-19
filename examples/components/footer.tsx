@@ -6,7 +6,7 @@ export function Footer() {
                 <div className="d-flex align-items-center justify-content-around p-3 container-lg">
                     <a
                         target="_blank"
-                        href="https://github.com/cocoss-org/co-share"
+                        href="https://github.com/cocoss-org/co-virtualize"
                         className="text-black d-flex flex-row align-items-center">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
