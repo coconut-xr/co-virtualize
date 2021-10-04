@@ -8,7 +8,7 @@ co-virtualize enables the extension and decoupling of a react component's liveti
 Sometimes you want to show a fade-out animation after a component has been removed from a list.
 
 ![](./images/list.gif)
-*[List Example](https://co-virtualize.github.io/list)*
+*[List Example](https://cocoss-org.github.io/co-virtualize/list)*
 
 Virtualization of components allows to let the virtualized component live after it's originator has been killed. A new owner can also regain control of the virtual component to enable all sorts of fancy animations.
 
@@ -17,6 +17,6 @@ We use the `useVirtual` hook to create a virtual component. The hook taks a comp
 A virtualized component has, aside from the passed properties, a `connected` flag and `destroy` function as properties.  
 The `connected` flag is `true` when the originator is alive and turns flase when he dies. The `destroy` function enables the component to end it's own existance.
 
-## [Examples](https://co-virtualize.github.io)
+## [Examples](https://cocoss-org.github.io/co-virtualize/)
 
-* [List](https://co-virtualize.github.io/list) - a filtered list that animates the creation and destruction of it's ListItems
+* [List](https://cocoss-org.github.io/co-virtualize/list) - a filtered list that animates the creation and destruction of it's ListItems
