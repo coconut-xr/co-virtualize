@@ -1,4 +1,5 @@
-import { useState } from "react"
+import React, { useState } from "react"
+import Link from 'next/link'
 
 const pages: Array<{ title: string; url: string }> = [
     {
@@ -12,22 +13,31 @@ export function Header({ selectedIndex }: { selectedIndex: number }) {
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
             <div className="container-fluid">
-                <a className="navbar-brand" href="/">
-                    co-virtualize examples
-                </a>
+                <Link href="/" passHref>
+                    <a className="navbar-brand">
+                        co-virtualize examples
+                    </a>
+                </Link>
                 <button
                     className="navbar-toggler"
+                    type="button"
                     onClick={() => setOpen(!open)}
-                    type="button">
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavDropdown"
+                    aria-controls="navbarNavDropdown"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className={`align-self-flex-end navbar-collapse ${open ? "" : "collapse"}`}>
                     <ul className="navbar-nav">
                         {pages.map(({ title, url }, index) => (
                             <li key={title} className="nav-item">
-                                <a className={`nav-link ${index === selectedIndex ? "active" : ""}`} href={url}>
-                                    {title}
-                                </a>
+                                <Link href={url} passHref>
+                                    <a className={`nav-link ${index === selectedIndex ? "active" : ""}`}>
+                                        {title}
+                                    </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>
