@@ -1,6 +1,6 @@
 # co-virtualize
 
-co-virtualize enables the extension and decoupling of a react component's livetime.
+A React library to enable the extension and decoupling of a component's lifetime.
 
 `npm i co-virtualize`
 

@@ -1,7 +1,20 @@
 {
   "name": "co-virtualize",
-  "version": "1.0.0",
-  "main": "dist",
+  "version": "1.0.1",
+  "main": "",
+  "description": "A React library to enable the extension and decoupling of a component's lifetime.",
+  "homepage": "https://cocoss-org.github.io/co-virtualize",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Bela Bohlender",
+  "keywords": [
+    "react",
+    "virtualize",
+      "typescript"
+  ],
+  "repository": {
+      "type": "git",
+      "url": "git@github.com:cocoss-org/co-virtualize.git"
+  },
   "scripts": {
     "build": "tsc",
     "check": "run-s check:prettier check:eslint",
