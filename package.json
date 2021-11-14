@@ -1,44 +1,44 @@
 {
-  "name": "co-virtualize",
-  "version": "1.0.1",
-  "main": "",
-  "description": "A React library to enable the extension and decoupling of a component's lifetime.",
-  "homepage": "https://cocoss-org.github.io/co-virtualize",
-  "license": "SEE LICENSE IN LICENSE",
-  "author": "Bela Bohlender",
-  "keywords": [
-    "react",
-    "virtualize",
-      "typescript"
-  ],
-  "repository": {
-      "type": "git",
-      "url": "git@github.com:cocoss-org/co-virtualize.git"
-  },
-  "scripts": {
-    "build": "tsc",
-    "check": "run-s check:prettier check:eslint",
-    "check:prettier": "prettier --check src/**/*.{ts,tsx}",
-    "check:eslint": "eslint src",
-    "fix": "run-s fix:prettier fix:eslint",
-    "fix:prettier": "prettier --write src/**/*.{ts,tsx}",
-    "fix:eslint": "eslint src --fix"
-  },
-  "peerDependencies": {
-    "react": "^17.0.2"
-  },
-  "devDependencies": {
-    "@types/react": "^17.0.21",
-    "@types/uuid": "^8.3.1",
-    "@typescript-eslint/eslint-plugin": "^4.32.0",
-    "@typescript-eslint/parser": "^4.32.0",
-    "eslint": "^7.32.0",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.4.1",
-    "react": "^17.0.2",
-    "typescript": "^4.4.3"
-  },
-  "dependencies": {
-    "uuid": "^8.3.2"
-  }
+    "name": "co-virtualize",
+    "version": "1.0.2",
+    "main": "",
+    "description": "A React library to enable the extension and decoupling of a component's lifetime.",
+    "homepage": "https://cocoss-org.github.io/co-virtualize",
+    "license": "SEE LICENSE IN LICENSE",
+    "author": "Bela Bohlender",
+    "keywords": [
+        "react",
+        "virtualize",
+        "typescript"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:cocoss-org/co-virtualize.git"
+    },
+    "scripts": {
+        "build": "tsc",
+        "check": "run-s check:prettier check:eslint",
+        "check:prettier": "prettier --check src/**/*.{ts,tsx}",
+        "check:eslint": "eslint src",
+        "fix": "run-s fix:prettier fix:eslint",
+        "fix:prettier": "prettier --write src/**/*.{ts,tsx}",
+        "fix:eslint": "eslint src --fix"
+    },
+    "peerDependencies": {
+        "react": "^17.0.2"
+    },
+    "devDependencies": {
+        "@types/react": "^17.0.21",
+        "@types/uuid": "^8.3.1",
+        "@typescript-eslint/eslint-plugin": "^4.32.0",
+        "@typescript-eslint/parser": "^4.32.0",
+        "eslint": "^7.32.0",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^2.4.1",
+        "react": "^17.0.2",
+        "typescript": "^4.4.3"
+    },
+    "dependencies": {
+        "uuid": "^8.3.2"
+    }
 }

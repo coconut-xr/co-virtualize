@@ -1,4 +1,4 @@
-import React, { ComponentType, createContext, ReactNode, useContext, useEffect, useMemo, useReducer } from "react"
+import React, { ComponentType, createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react"
 import { v4 as uuid } from "uuid"
 
 type VirtualBaseContext = {
@@ -9,65 +9,59 @@ type VirtualBaseContext = {
 const virtualBaseContext = createContext<VirtualBaseContext>(null as any)
 
 type VirtualElements = Array<VirtualElement>
-type ConnectedVirtualElement = {
+
+type VirtualElement = {
     id: string
     index: number
-    connected: true
     component: ComponentType<any>
-    props: any
-}
-type VirtualElement =
+} & (
     | {
-          id: string
-          index: number
           connected: false
-          component: ComponentType<any>
           props: undefined
       }
-    | ConnectedVirtualElement
-type Action =
     | {
-          type: "set"
-          id: string
-          component: ComponentType<any>
-          index: number
+          connected: true
           props: any
       }
-    | {
-          type: "unset"
-          id: string
-      }
-    | {
-          type: "destroy"
-          id: string
-      }
+)
 
-function reduce(elements: VirtualElements, action: Action): VirtualElements {
-    switch (action.type) {
-        case "set":
-            return [
-                ...elements.filter(({ id }) => id !== action.id),
-                {
-                    connected: true,
-                    component: action.component,
-                    index: action.index,
-                    id: action.id,
-                    props: action.props,
-                },
-            ].sort((e1, e2) => e1.index - e2.index)
-        case "unset":
-            return elements.map((element) =>
-                action.id === element.id
-                    ? {
-                          ...element,
-                          connected: false,
-                          props: undefined,
-                      }
-                    : element
-            )
-        case "destroy":
-            return elements.filter(({ id }) => id != action.id).sort((e1, e2) => e1.index - e2.index)
-    }
+function destroy(setElements: (fn: (elements: VirtualElements) => VirtualElements) => void, destroyId: string): void {
+    setElements((elements) => elements.filter(({ id }) => id != destroyId).sort((e1, e2) => e1.index - e2.index))
+}
+
+function unset(setElements: (fn: (elements: VirtualElements) => VirtualElements) => void, unsetId: string): void {
+    setElements((elements) =>
+        elements.map((element) =>
+            unsetId === element.id
+                ? {
+                      ...element,
+                      connected: false,
+                      props: undefined,
+                  }
+                : element
+        )
+    )
+}
+
+function set(
+    setElements: (fn: (elements: VirtualElements) => VirtualElements) => void,
+    newId: string,
+    index: number,
+    component: ComponentType<any>,
+    props: any
+): void {
+    setElements((elements) =>
+        [
+            ...elements.filter(({ id }) => id !== newId),
+            {
+                connected: true,
+                component,
+                index,
+                id: newId,
+                props,
+            },
+        ].sort((e1, e2) => e1.index - e2.index)
+    )
 }
 
 /**
@@ -75,20 +69,26 @@ function reduce(elements: VirtualElements, action: Action): VirtualElements {
  * all useVirtual hooks must be inside a VirtualBase
  */
 export function VirtualBase({ children }: { children?: ReactNode | undefined }): JSX.Element {
-    const [elements, changeElements] = useReducer(reduce, [])
+    const [elements, setElements] = useState<VirtualElements>([])
     const ctx = useMemo<VirtualBaseContext>(
         () => ({
-            set: (id, index, component, props) => changeElements({ type: "set", id, index, props, component }),
-            unset: (id) => changeElements({ type: "unset", id }),
+            set: set.bind(null, setElements),
+            unset: unset.bind(null, setElements),
         }),
-        [changeElements]
+        []
     )
     const virtualElements = useMemo(
         () =>
-            elements.map(({ component: C, id, props, connected }) => (
-                <C key={id} connected={connected} destroy={() => changeElements({ type: "destroy", id })} {...props} />
+            elements.map(({ component: C, id, props, connected, index }) => (
+                <C
+                    key={id}
+                    index={index}
+                    connected={connected}
+                    destroy={destroy.bind(null, setElements, id)}
+                    {...props}
+                />
             )),
-        [elements, changeElements]
+        [elements]
     )
     return (
         <virtualBaseContext.Provider value={ctx}>
@@ -106,6 +106,10 @@ export type VirtualProps = {
      * flag that represents whether the originator is still alive
      */
     connected: boolean
+    /**
+     * declares the order at which it should be rendered
+     */
+    index: number
     /**
      * function to end own existance
      */

@@ -1,5 +1,11 @@
 # co-virtualize
 
+
+[![Build Status](https://img.shields.io/github/workflow/status/cocoss-org/co-virtualize/Depolyment)](https://github.com/cocoss-org/co-virtualize/actions)&nbsp;
+[![Npm package version](https://badgen.net/npm/v/co-virtualize)](https://npmjs.com/package/co-virtualize)&nbsp;
+[![GitHub license](https://img.shields.io/github/license/cocoss-org/co-virtualize.svg)](https://github.com/cocoss-org/co-virtualize/blob/master/LICENSE)&nbsp;
+[![Twitter](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/BelaBohlender)
+
 A React library to enable the extension and decoupling of a component's lifetime.
 
 `npm i co-virtualize`
@@ -7,7 +13,7 @@ A React library to enable the extension and decoupling of a component's lifetime
 ## **Why?**
 Sometimes you want to show a fade-out animation after a component has been removed from a list.
 
-![](./images/list.gif)
+![](./list.gif)
 *[List Example](https://cocoss-org.github.io/co-virtualize/list)*
 
 Virtualization of components allows to let the virtualized component live after it's originator has been killed. A new owner can also regain control of the virtual component to enable all sorts of fancy animations.
@@ -19,4 +25,4 @@ The `connected` flag is `true` when the originator is alive and turns flase when
 
 ## [Examples](https://cocoss-org.github.io/co-virtualize/)
 
-* [List](https://cocoss-org.github.io/co-virtualize/list) - a filtered list that animates the creation and destruction of it's ListItems
+* [List](https://cocoss-org.github.io/co-virtualize/list) - Tutorial for a filtered list that animates the creation and destruction of it's ListItems
