@@ -2,7 +2,7 @@ import React, { ComponentType, createContext, ReactNode, useContext, useEffect, 
 import { v4 as uuid } from "uuid"
 
 type VirtualBaseContext = {
-    set: (id: string, index: number, component: ComponentType<any>, props: any) => void
+    set: (id: string, component: ComponentType<any>, index: number, props: any) => void
     unset: (id: string) => void
 }
 
@@ -46,8 +46,8 @@ function unset(setElements: (fn: (elements: VirtualElements) => VirtualElements)
 function set(
     setElements: (fn: (elements: VirtualElements) => VirtualElements) => void,
     newId: string,
-    index: number,
     component: ComponentType<any>,
+    index: number,
     props: any
 ): void {
     setElements((elements) =>
@@ -116,6 +116,21 @@ export type VirtualProps = {
     destroy: () => void
 }
 
+export type VirtualControl<T> = [set: (index: number, props: T) => void, unset: () => void]
+
+export function useVirtualControl<T>(
+    component: ComponentType<Partial<T> & VirtualProps>,
+    id?: string
+): VirtualControl<T> {
+    const ctx = useContext(virtualBaseContext)
+    const result = useMemo<VirtualControl<T>>(() => {
+        const identifier = id ?? uuid()
+        return [ctx.set.bind(null, identifier, component), ctx.unset.bind(null, identifier)]
+    }, [ctx, id, component])
+    useEffect(() => result[1], [result])
+    return result
+}
+
 /**
  * will create a virtual component inside the containing virtual base
  * @param component the component to be virtualized
@@ -129,10 +144,8 @@ export function useVirtual<T>(
     index?: number,
     id?: string
 ): void {
-    const { set, unset } = useContext(virtualBaseContext)
-    const identifier = useMemo(() => id ?? uuid(), [id])
+    const [set] = useVirtualControl(component, id)
     useEffect(() => {
-        set(identifier, index ?? 0, component, props)
-    }, [set, index, props, identifier, component])
-    useEffect(() => () => unset(identifier), [identifier, unset])
+        set(index ?? 0, props)
+    }, [set, index, props])
 }
