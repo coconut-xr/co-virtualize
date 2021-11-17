@@ -15,15 +15,16 @@ This way we can render a `VirtualizedListItem`, which will result in the creatio
 function VirtualizedListItem({
     children,
     id,
-    index
+    index,
 }: PropsWithChildren<{
-    id: string,
+    id: string
     index: number
 }>) {
     useVirtual(ListItem, { children }, index, id)
     return null
 }
 ```
+
 <br/>
 
 ## List
@@ -33,77 +34,89 @@ Based on the `filter` value we filter an array with values 0-99 if it includes t
 
 ```typescript
 function List({ filter }: { filter: string }) {
-    return <>
-        {
-            new Array(100).fill(null)
+    return (
+        <>
+            {new Array(100)
+                .fill(null)
                 .map((_, i) => i)
                 .filter((i) => i.toString().includes(filter))
-                .map((i) =>
-                    <VirtualizedListItem index={i} id={i.toString()} key={i}>{i}</VirtualizedListItem>
-                )
-        }
-    </>
+                .map((i) => (
+                    <VirtualizedListItem index={i} id={i.toString()} key={i}>
+                        {i}
+                    </VirtualizedListItem>
+                ))}
+        </>
+    )
 }
 ```
+
 <br/>
 
 ## ListItem
 
-Now to the `ListItem` that actually gets rendered. Aside from the properties passed by the `VirtualListItem`, in this case only the `children` property, we also get a `connected` flag and a `destroy` function as properties.  
-The `connected` flag is true when owner component is alive. As soon as the `ListItem` gets destroyed, the `connected` flag we turn false and all the properties assigned by the owner are removed.  
-The `destroy` function enables the `ListItem` to destroy iteself after it's not needed anymore. In this case we destroy it after the element is not visible anymore.
+Now to the `ListItem` that actually gets rendered. The component gets controller properties and a `destroy` function as properties.  
+The `controllerProps` is an array with all the props from all the controllers. In our case we will only have one or none controller. If the amount of controller is zero, we animate the disposal of the component and then destroy it.
+The `Transition` Example shows what can be done with multiple controllers attached to one virtual component.
 
-For this example we use `react-spring` to animate the `maxWidth`, `padding`, `opacity` based on the `connected` flag.
+For this example we use `react-spring` to animate the `maxWidth`, `padding`, `opacity` based on `controllerProps.length > 0`, which states whether their are any controllers connected.
 
-We store the `children` property into the `childrenRef` to ensure we keep the value even after it is removed we it's owner, the `ListItem`, is disconnected.
+We store the `children` property into the `childrenRef` to ensure we keep the value even after the controller has been removed, which will empty the `controllerProps` array.
 
 ```typescript
 function ListItem({
     destroy,
-    connected,
-    children: c
-}: PropsWithChildren<VirtualProps>) {
-    const [{ maxWidth, padding, opacity }, api] = useSpring({
-        maxWidth: 0,
-        padding: 0,
-        opacity: 0,
-        onRest: {
-            maxWidth: (val) => {
-                if (val.value === 0) {
-                    destroy()
-                }
-            }
-        }
-    }, [])
+    controllerProps,
+}: VirtualProps<{
+    children: ReactNode
+}>) {
+    const childrenRef = useRef(controllerProps[0]?.children)
+    const [{ maxWidth, padding, opacity }, api] = useSpring(
+        {
+            maxWidth: 0,
+            padding: 0,
+            opacity: 0,
+            onRest: {
+                maxWidth: (val) => {
+                    if (val.value === 0) {
+                        destroy()
+                    }
+                },
+            },
+        },
+        []
+    )
+    const connected = controllerProps.length > 0
     useEffect(() => {
         api.start({
             maxWidth: connected ? 50 : 0,
             padding: connected ? 10 : 0,
-            opacity: connected ? 1 : 0
+            opacity: connected ? 1 : 0,
         })
     }, [connected])
-    
-    const childrenRef = useRef(c)
     const children = useMemo(() => {
-        if (connected) {
-            childrenRef.current = c
+        if (controllerProps.length > 0) {
+            childrenRef.current = controllerProps[0].children
         }
         return childrenRef.current
-    }, [connected, c])
-    return <a.span style={{
-        opacity,
-        paddingLeft: padding,
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingRight: padding,
-        fontSize: 30,
-        maxWidth,
-        overflow: "hidden"
-    }}>
-        {children}
-    </a.span>
+    }, [controllerProps])
+    return (
+        <a.span
+            style={{
+                opacity,
+                paddingLeft: padding,
+                paddingTop: 10,
+                paddingBottom: 10,
+                paddingRight: padding,
+                fontSize: 30,
+                maxWidth,
+                overflow: "hidden",
+            }}>
+            {children}
+        </a.span>
+    )
 }
 ```
+
 <br/>
 
 ## Page
@@ -119,16 +132,17 @@ function Page() {
         <div className="p-3" style={{ display: "flex", flexDirection: "column" }}>
             <input
                 value={search}
-                onChange={e =>setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 type="text"
                 className="form-control"
                 placeholder="Search"
             />
-            <div style={{
-                flexWrap: "wrap",
-                display: "flex",
-                flexDirection: "row"
-            }}>
+            <div
+                style={{
+                    flexWrap: "wrap",
+                    display: "flex",
+                    flexDirection: "row",
+                }}>
                 <VirtualBase>
                     <List filter={search} />
                 </VirtualBase>

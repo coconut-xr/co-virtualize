@@ -2,8 +2,8 @@ import React, { ComponentType, createContext, ReactNode, useContext, useEffect, 
 import { v4 as uuid } from "uuid"
 
 type VirtualBaseContext = {
-    set: (id: string, component: ComponentType<any>, index: number, props: any) => void
-    unset: (id: string) => void
+    set: (id: string, controllerId: string, component: ComponentType<any>, index: number, props: any) => void
+    unset: (id: string, controllerId: string) => void
 }
 
 const virtualBaseContext = createContext<VirtualBaseContext>(null as any)
@@ -13,55 +13,91 @@ type VirtualElements = Array<VirtualElement>
 type VirtualElement = {
     id: string
     index: number
-    component: ComponentType<any>
-} & (
-    | {
-          connected: false
-          props: undefined
-      }
-    | {
-          connected: true
-          props: any
-      }
-)
+    component: ComponentType<VirtualProps<any>>
+    controllerPropsList: Array<{ id: string; value: any }>
+    controllerProps: Array<any>
+}
 
+/**
+ * remove virtual element, can only be executed by the virtual component itself
+ */
 function destroy(setElements: (fn: (elements: VirtualElements) => VirtualElements) => void, destroyId: string): void {
     setElements((elements) => elements.filter(({ id }) => id != destroyId).sort((e1, e2) => e1.index - e2.index))
 }
 
-function unset(setElements: (fn: (elements: VirtualElements) => VirtualElements) => void, unsetId: string): void {
+/**
+ * remove controller prop from virtual element
+ */
+function unset(
+    setElements: (fn: (elements: VirtualElements) => VirtualElements) => void,
+    id: string,
+    controllerId: string
+): void {
     setElements((elements) =>
-        elements.map((element) =>
-            unsetId === element.id
-                ? {
-                      ...element,
-                      connected: false,
-                      props: undefined,
-                  }
-                : element
-        )
+        elements.map((element) => {
+            if (element.id === id) {
+                const controllerPropsList = element.controllerPropsList.filter((prop) => prop.id != controllerId)
+                return {
+                    ...element,
+                    controllerPropsList,
+                    controllerProps: controllerPropsList.map(({ value }) => value),
+                }
+            }
+            return element
+        })
     )
 }
 
+/**
+ * add or edit virtual elements
+ */
 function set(
     setElements: (fn: (elements: VirtualElements) => VirtualElements) => void,
-    newId: string,
+    id: string,
+    controllerId: string,
     component: ComponentType<any>,
     index: number,
-    props: any
+    prop: any
 ): void {
-    setElements((elements) =>
-        [
-            ...elements.filter(({ id }) => id !== newId),
-            {
-                connected: true,
-                component,
-                index,
-                id: newId,
-                props,
-            },
-        ].sort((e1, e2) => e1.index - e2.index)
-    )
+    setElements((elements) => {
+        const result = [...elements]
+        let insertIndex = result.findIndex((element) => {
+            if (element.id == id) {
+                if (element.index != index && element.controllerPropsList.length > 0) {
+                    throw `multiple controllers can't assign unequal indices to the same virtual element (id "${id}")`
+                }
+                if (element.component != component) {
+                    throw `can't change the component of an exisiting element (id "${id}")`
+                }
+                return true
+            }
+            return false
+        })
+        let controllerPropsList: VirtualElement["controllerPropsList"]
+        let controllerPropsListInsertIndex: number
+
+        if (insertIndex === -1) {
+            insertIndex = result.length
+            controllerPropsList = []
+            controllerPropsListInsertIndex = 0
+        } else {
+            controllerPropsList = [...result[insertIndex].controllerPropsList]
+            controllerPropsListInsertIndex = controllerPropsList.findIndex((prop) => prop.id === controllerId)
+            if (controllerPropsListInsertIndex === -1) {
+                controllerPropsListInsertIndex = controllerPropsList.length
+            }
+        }
+
+        controllerPropsList[controllerPropsListInsertIndex] = { id: controllerId, value: prop }
+        result[insertIndex] = {
+            id,
+            component,
+            index,
+            controllerPropsList,
+            controllerProps: controllerPropsList.map(({ value }) => value),
+        }
+        return result.sort((e1, e2) => e1.index - e2.index)
+    })
 }
 
 /**
@@ -79,13 +115,13 @@ export function VirtualBase({ children }: { children?: ReactNode | undefined }):
     )
     const virtualElements = useMemo(
         () =>
-            elements.map(({ component: C, id, props, connected, index }) => (
+            elements.map(({ component: C, id, controllerProps, index }) => (
                 <C
                     key={id}
+                    id={id}
                     index={index}
-                    connected={connected}
+                    controllerProps={controllerProps}
                     destroy={destroy.bind(null, setElements, id)}
-                    {...props}
                 />
             )),
         [elements]
@@ -101,11 +137,9 @@ export function VirtualBase({ children }: { children?: ReactNode | undefined }):
 /**
  * additional properties available for virtual components
  */
-export type VirtualProps = {
-    /**
-     * flag that represents whether the originator is still alive
-     */
-    connected: boolean
+export type VirtualProps<T> = {
+    id: string
+    controllerProps: Array<T>
     /**
      * declares the order at which it should be rendered
      */
@@ -118,14 +152,12 @@ export type VirtualProps = {
 
 export type VirtualControl<T> = [set: (index: number, props: T) => void, unset: () => void]
 
-export function useVirtualControl<T>(
-    component: ComponentType<Partial<T> & VirtualProps>,
-    id?: string
-): VirtualControl<T> {
+export function useVirtualControl<T>(component: ComponentType<VirtualProps<T>>, id?: string): VirtualControl<T> {
     const ctx = useContext(virtualBaseContext)
     const result = useMemo<VirtualControl<T>>(() => {
         const identifier = id ?? uuid()
-        return [ctx.set.bind(null, identifier, component), ctx.unset.bind(null, identifier)]
+        const controllerId = uuid()
+        return [ctx.set.bind(null, identifier, controllerId, component), ctx.unset.bind(null, identifier, controllerId)]
     }, [ctx, id, component])
     useEffect(() => result[1], [result])
     return result
@@ -138,14 +170,7 @@ export function useVirtualControl<T>(
  * @param index declares the order at which it should be rendered
  * @param id optional unique identifier to regain control of a previously created virtual component
  */
-export function useVirtual<T>(
-    component: ComponentType<Partial<T> & VirtualProps>,
-    props: T,
-    index?: number,
-    id?: string
-): void {
+export function useVirtual<T>(component: ComponentType<VirtualProps<T>>, props: T, index?: number, id?: string): void {
     const [set] = useVirtualControl(component, id)
-    useEffect(() => {
-        set(index ?? 0, props)
-    }, [set, index, props])
+    useEffect(() => set(index ?? 0, props), [set, index, props])
 }

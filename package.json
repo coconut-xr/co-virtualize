@@ -1,6 +1,6 @@
 {
     "name": "co-virtualize",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "main": "",
     "description": "A React library to enable the extension and decoupling of a component's lifetime.",
     "homepage": "https://cocoss-org.github.io/co-virtualize",

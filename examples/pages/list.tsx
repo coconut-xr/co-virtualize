@@ -1,7 +1,7 @@
-import React, { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react"
+import React, { PropsWithChildren, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import Head from "next/head"
 import { useVirtual, VirtualBase, VirtualProps } from "co-virtualize"
-import { useSpring, a } from "react-spring"
+import { useSpring, a } from "@react-spring/web"
 import { Header } from "../components/header"
 import { Footer } from "../components/footer"
 import MD from "../content/list.md"
@@ -21,7 +21,13 @@ export default function Index() {
             </Head>
             <Header selectedIndex={0} />
             <div className="p-3" style={{ display: "flex", flexDirection: "column" }}>
-                <input value={search} onChange={e => setSearch(e.target.value)} type="text" className="form-control" placeholder="Search" />
+                <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    type="text"
+                    className="form-control"
+                    placeholder="Search"
+                />
                 <div style={{ flexWrap: "wrap", display: "flex", flexDirection: "row" }}>
                     <VirtualBase>
                         <List filter={search} />
@@ -37,49 +43,75 @@ export default function Index() {
 }
 
 function List({ filter }: { filter: string }) {
-    return <>
-        {
-            new Array(100).fill(null)
+    return (
+        <>
+            {new Array(100)
+                .fill(null)
                 .map((_, i) => i)
                 .filter((i) => i.toString().includes(filter))
-                .map((i) =>
-                    <VirtualizedListItem index={i} id={i.toString()} key={i}>{i}</VirtualizedListItem>
-                )
-        }
-    </>
+                .map((i) => (
+                    <VirtualizedListItem index={i} id={i.toString()} key={i}>
+                        {i}
+                    </VirtualizedListItem>
+                ))}
+        </>
+    )
 }
 
-function VirtualizedListItem({ children, id, index }: PropsWithChildren<{ id: string, index: number }>) {
+function VirtualizedListItem({ children, id, index }: PropsWithChildren<{ id: string; index: number }>) {
     useVirtual(ListItem, { children }, index, id)
     return null
 }
 
-function ListItem({ destroy, connected, children: c }: PropsWithChildren<VirtualProps>) {
-    const childrenRef = useRef(c)
-    const [{ maxWidth, padding, opacity }, api] = useSpring({
-        maxWidth: 0,
-        padding: 0,
-        opacity: 0,
-        onRest: {
-            maxWidth: (val) => {
-                if (val.value === 0) {
-                    destroy()
-                }
-            }
-        }
-    }, [])
+function ListItem({
+    destroy,
+    controllerProps,
+}: VirtualProps<{
+    children: ReactNode
+}>) {
+    const childrenRef = useRef(controllerProps[0]?.children)
+    const [{ maxWidth, padding, opacity }, api] = useSpring(
+        {
+            maxWidth: 0,
+            padding: 0,
+            opacity: 0,
+            onRest: {
+                maxWidth: (val) => {
+                    if (val.value === 0) {
+                        destroy()
+                    }
+                },
+            },
+        },
+        []
+    )
+    const connected = controllerProps.length > 0
     useEffect(() => {
         api.start({
             maxWidth: connected ? 50 : 0,
             padding: connected ? 10 : 0,
-            opacity: connected ? 1 : 0
+            opacity: connected ? 1 : 0,
         })
     }, [connected])
     const children = useMemo(() => {
-        if (connected) {
-            childrenRef.current = c
+        if (controllerProps.length > 0) {
+            childrenRef.current = controllerProps[0].children
         }
         return childrenRef.current
-    }, [connected, c])
-    return <a.span style={{ opacity, paddingLeft: padding, paddingTop: 10, paddingBottom: 10, paddingRight: padding, fontSize: 30, maxWidth, overflow: "hidden" }}>{children}</a.span>
+    }, [controllerProps])
+    return (
+        <a.span
+            style={{
+                opacity,
+                paddingLeft: padding,
+                paddingTop: 10,
+                paddingBottom: 10,
+                paddingRight: padding,
+                fontSize: 30,
+                maxWidth,
+                overflow: "hidden",
+            }}>
+            {children}
+        </a.span>
+    )
 }
